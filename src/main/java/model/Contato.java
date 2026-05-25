@@ -67,8 +67,7 @@ public class Contato {
 
     @Override
     public String toString() {
-        return "Id: " + id +
-                "\nNome: " + nome +
+        return "Nome: " + nome +
                 "\nTelefone: " + telefone +
                 "\nEmail: " + email +
                 "\nCategoria: " + categoria;
