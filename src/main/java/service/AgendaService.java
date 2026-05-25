@@ -88,5 +88,14 @@ public class AgendaService {
                 .orElseThrow(() -> new ContatoNaoEncontradoException("Contato não encontrado. Telefone: " + telefone));
     }
 
+    public List<Contato> listarOrdenados(){
 
+        return contatos.stream()
+                .sorted(Comparator.comparing(Contato::getNome))
+                .collect(Collectors.toList());
+    }
+
+    public List<Contato> listarContatos(){
+        return List.copyOf(contatos);
+    }
 }
