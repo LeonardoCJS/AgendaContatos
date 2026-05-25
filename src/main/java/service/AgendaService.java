@@ -49,4 +49,28 @@ public class AgendaService {
         contatoRepository.salvar(contatos);
     }
 
+
+    public List<Contato> buscarContatoPorNome (String nome) {
+        if (nome == null) {
+            throw new IllegalArgumentException("Nome não pode ser nulo.");
+        }
+
+        return contatos.stream()
+                .filter(c -> c.getNome().toUpperCase().contains(nome.toUpperCase()))
+                .collect(Collectors.toList());
+
+    }
+
+    public Contato buscarContatoPorTelefone(String telefone) {
+        if (telefone == null) {
+            throw new IllegalArgumentException("Telefone não pode ser nulo.");
+        }
+
+        return contatos.stream()
+                .filter(c -> c.getTelefone().equals(telefone))
+                .findFirst()
+                .orElseThrow(() -> new ContatoNaoEncontradoException("Contato não encontrado. Telefone: " + telefone));
+    }
+
+
 }
