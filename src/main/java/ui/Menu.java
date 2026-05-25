@@ -1,13 +1,10 @@
 package ui;
 
 import exception.AgendaException;
-import exception.ContatoNaoEncontradoException;
 import model.Contato;
 import model.enums.Categoria;
-import repository.ContatoRepositoryJson;
 import service.AgendaService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -15,30 +12,30 @@ public class Menu {
     private final Scanner sc = new Scanner(System.in);
     private final AgendaService agendaService;
 
-    public Menu(AgendaService agendaService){
+    public Menu(AgendaService agendaService) {
         this.agendaService = agendaService;
     }
 
-    public void rodar(){
+    public void rodar() {
         boolean sair = false;
         do {
             mostrarMenu();
             String opcao = sc.nextLine().trim();
             switch (opcao) {
-                case "1" -> addContato();
-                case "2" -> removeContato();
+                case "1" -> adicionarContato();
+                case "2" -> removerContato();
                 case "3" -> atualizarContato();
                 case "4" -> buscarPorNome();
                 case "5" -> buscarPorTelefone();
                 case "6" -> listarTodos();
-                case "7" -> listarOrdenadoNome();
+                case "7" -> listarOrdenadosPorNome();
                 case "0" -> sair = true;
-                default -> System.out.println("Opção invalida!");
+                default -> System.out.println("Opção inválida!");
             }
-        }while(!sair);
+        } while (!sair);
     }
 
-    private void mostrarMenu(){
+    private void mostrarMenu() {
         System.out.println("====== Agenda ======");
         System.out.println("1. Adicionar contato");
         System.out.println("2. Remover contato");
@@ -48,154 +45,140 @@ public class Menu {
         System.out.println("6. Listar todos");
         System.out.println("7. Listar ordenados por nome");
         System.out.println("0. Sair");
-        System.out.println("Selecione um opção: ");
+        System.out.print("Selecione uma opção: ");
     }
 
-    private void addContato(){
+    private void adicionarContato() {
         try {
-            System.out.println("Digite o nome do contato: ");
+            System.out.print("Nome: ");
             String nome = sc.nextLine();
-            System.out.println("Digite o telefone do contato: ");
+            System.out.print("Telefone: ");
             String telefone = sc.nextLine();
-            System.out.println("Digite o email do contato: ");
+            System.out.print("Email: ");
             String email = sc.nextLine();
-            System.out.println("Digite a categoria do contato (AMIGO, TRABALHO ou FAMILIA): ");
-            String categoriaInput = sc.nextLine();
-            Categoria categoria;
-            try {
-                categoria = Categoria.valueOf(categoriaInput.toUpperCase());
-            }catch (IllegalArgumentException e){
-                throw  new IllegalArgumentException("Categoria invalida!");
-            }
-
-            Contato contato = new Contato(nome, telefone, email, categoria);
-            agendaService.addContato(contato);
+            Categoria categoria = lerCategoria();
+            agendaService.adicionarContato(new Contato(nome, telefone, email, categoria));
             System.out.println("Contato adicionado com sucesso!");
-        }catch (AgendaException e){
+        } catch (AgendaException | IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
         }
     }
 
-    private void removeContato(){
+    private void removerContato() {
         try {
             List<Contato> contatos = agendaService.listarContatos();
-            if (contatos.isEmpty()){
+            if (contatos.isEmpty()) {
                 System.out.println("Nenhum contato encontrado!");
                 return;
             }
             System.out.println("====== Lista de Contatos ======");
-            for (int i = 0; i < contatos.size(); i++){
-                System.out.println((i+1) + ". " + contatos.get(i));
-                System.out.println("----------------------------");
-            }
-            System.out.println("Digite o numero do contato que deseja remover: ");
-            int escolha = Integer.parseInt(sc.nextLine());
-            escolha--;
-            Contato contato = contatos.get(escolha);
-            agendaService.removeContato(contato.getId());
+            exibirContatos(contatos);
+            System.out.print("Digite o número do contato que deseja remover: ");
+            int escolha = Integer.parseInt(sc.nextLine()) - 1;
+            agendaService.removerContato(contatos.get(escolha).getId());
             System.out.println("Contato removido com sucesso!");
-        } catch (AgendaException e){
+        } catch (AgendaException e) {
             System.out.println("Erro: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.out.println("Erro: Entrada inválida, digite um número.");
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Erro: Número fora do intervalo.");
         }
     }
 
-    private void atualizarContato(){
+    private void atualizarContato() {
         try {
             List<Contato> contatos = agendaService.listarContatos();
-            if (contatos.isEmpty()){
+            if (contatos.isEmpty()) {
                 System.out.println("Nenhum contato encontrado!");
                 return;
             }
             System.out.println("====== Lista de Contatos ======");
-            for (int i = 0; i < contatos.size(); i++){
-                System.out.println((i+1) + ". " + contatos.get(i));
-                System.out.println("----------------------------");
-            }
-            System.out.println("Digite o numero do contato que deseja atualizar: ");
-            int escolha = Integer.parseInt(sc.nextLine());
-            escolha--;
+            exibirContatos(contatos);
+            System.out.print("Digite o número do contato que deseja atualizar: ");
+            int escolha = Integer.parseInt(sc.nextLine()) - 1;
             Contato contato = contatos.get(escolha);
-            try {
-                System.out.println("Digite o nome do contato: ");
-                String nome = sc.nextLine();
-                System.out.println("Digite o telefone do contato: ");
-                String telefone = sc.nextLine();
-                System.out.println("Digite o email do contato: ");
-                String email = sc.nextLine();
-                System.out.println("Digite a categoria do contato (AMIGO, TRABALHO ou FAMILIA): ");
-                String categoriaInput = sc.nextLine();
-                Categoria categoria;
-                try {
-                    categoria = Categoria.valueOf(categoriaInput.toUpperCase());
-                }catch (IllegalArgumentException e){
-                    throw  new IllegalArgumentException("Categoria invalida!");
-                }
-                Contato contatoUpdade = new Contato(nome, telefone, email, categoria);
-                agendaService.atualizarContato(contato.getId(), contatoUpdade);
-                System.out.println("Contato atualizado com sucesso!");
-            }catch (AgendaException e){
-                System.out.println("Erro: " + e.getMessage());
-            }
-        }catch (AgendaException e){
+
+            System.out.print("Nome: ");
+            String nome = sc.nextLine();
+            System.out.print("Telefone: ");
+            String telefone = sc.nextLine();
+            System.out.print("Email: ");
+            String email = sc.nextLine();
+            Categoria categoria = lerCategoria();
+
+            agendaService.atualizarContato(contato.getId(), new Contato(nome, telefone, email, categoria));
+            System.out.println("Contato atualizado com sucesso!");
+        } catch (NumberFormatException e) {
+            System.out.println("Erro: Entrada inválida, digite um número.");
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Erro: Número fora do intervalo.");
+        } catch (AgendaException | IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
         }
-
     }
 
-    private void buscarPorNome(){
-        try{
-            System.out.println("Digite o nome do contato: ");
+    private void buscarPorNome() {
+        try {
+            System.out.print("Nome: ");
             String nome = sc.nextLine();
             List<Contato> contatos = agendaService.buscarContatoPorNome(nome);
             if (contatos.isEmpty()) {
                 System.out.println("Nenhum contato encontrado!");
                 return;
             }
-            System.out.println("====== Lista de Contatos ======");
-            for (int i = 0; i < contatos.size(); i++){
-                System.out.println((i+1) + ". " + contatos.get(i));
-                System.out.println("----------------------------");
-            }
-        }catch (ContatoNaoEncontradoException e){
+            System.out.println("====== Resultado da Busca ======");
+            exibirContatos(contatos);
+        } catch (AgendaException e) {
             System.out.println("Erro: " + e.getMessage());
         }
     }
 
-    private void buscarPorTelefone(){
-        try{
-            System.out.println("Digite o telefone do contato: ");
+    private void buscarPorTelefone() {
+        try {
+            System.out.print("Telefone: ");
             String telefone = sc.nextLine();
             Contato contato = agendaService.buscarContatoPorTelefone(telefone);
             System.out.println(contato);
-        }catch (ContatoNaoEncontradoException e){
+        } catch (AgendaException e) {
             System.out.println("Erro: " + e.getMessage());
         }
     }
 
-    private void listarTodos(){
+    private void listarTodos() {
         List<Contato> contatos = agendaService.listarContatos();
-        if (contatos.isEmpty()){
+        if (contatos.isEmpty()) {
             System.out.println("Nenhum contato encontrado!");
             return;
         }
         System.out.println("====== Lista de Contatos ======");
-        for (int i = 0; i < contatos.size(); i++){
-            System.out.println((i+1) + ". " + contatos.get(i));
-            System.out.println("----------------------------");
-        }
+        exibirContatos(contatos);
     }
 
-    private void listarOrdenadoNome(){
+    private void listarOrdenadosPorNome() {
         List<Contato> contatos = agendaService.listarOrdenados();
-        if (contatos.isEmpty()){
+        if (contatos.isEmpty()) {
             System.out.println("Nenhum contato encontrado!");
             return;
         }
-        System.out.println("====== Lista de Contatos Ordenado ======");
-        for (int i = 0; i < contatos.size(); i++){
-            System.out.println((i+1) + ". " + contatos.get(i));
+        System.out.println("====== Lista de Contatos Ordenados por Nome ======");
+        exibirContatos(contatos);
+    }
+
+    private void exibirContatos(List<Contato> contatos) {
+        for (int i = 0; i < contatos.size(); i++) {
+            System.out.println((i + 1) + ". " + contatos.get(i));
             System.out.println("----------------------------");
         }
     }
 
+    private Categoria lerCategoria() {
+        System.out.print("Categoria (AMIGO, TRABALHO ou FAMILIA): ");
+        String input = sc.nextLine();
+        try {
+            return Categoria.valueOf(input.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Categoria inválida: " + input);
+        }
+    }
 }

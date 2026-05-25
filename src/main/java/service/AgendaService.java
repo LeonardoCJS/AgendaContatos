@@ -7,7 +7,6 @@ import repository.ContatoRepository;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AgendaService {
     private final ContatoRepository contatoRepository;
@@ -18,32 +17,29 @@ public class AgendaService {
         this.contatoRepository = contatoRepository;
         this.contatos = contatoRepository.carregar();
         this.proximoId = contatos.stream()
-                .mapToLong(c -> c.getId())
+                .mapToLong(Contato::getId)
                 .max()
                 .orElse(0L) + 1L;
     }
 
-    public void addContato(Contato contato) {
+    public void adicionarContato(Contato contato) {
         if (contato == null) {
             throw new IllegalArgumentException("Contato não pode ser nulo.");
         }
         if (contatos.stream().anyMatch(c -> c.getTelefone().equals(contato.getTelefone()))) {
-            throw new AgendaException("Contato ja existente.");
+            throw new AgendaException("Contato já existente.");
         }
-        Contato contatoAdd = new Contato(proximoId, contato.getNome(), contato.getTelefone(), contato.getEmail(), contato.getCategoria());
-        contatos.add(contatoAdd);
+        contatos.add(new Contato(proximoId, contato.getNome(), contato.getTelefone(), contato.getEmail(), contato.getCategoria()));
         proximoId++;
         contatoRepository.salvar(contatos);
     }
 
-    public void removeContato(Long id) {
+    public void removerContato(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Id não pode ser nulo.");
         }
-
-        boolean contatoRemovido = contatos.removeIf(c -> c.getId().equals(id));
-
-        if (!contatoRemovido) {
+        boolean removido = contatos.removeIf(c -> c.getId().equals(id));
+        if (!removido) {
             throw new ContatoNaoEncontradoException("Contato não encontrado. Id: " + id);
         }
         contatoRepository.salvar(contatos);
@@ -66,36 +62,32 @@ public class AgendaService {
         contatoRepository.salvar(contatos);
     }
 
-    public List<Contato> buscarContatoPorNome (String nome) {
+    public List<Contato> buscarContatoPorNome(String nome) {
         if (nome == null) {
             throw new IllegalArgumentException("Nome não pode ser nulo.");
         }
-
         return contatos.stream()
                 .filter(c -> c.getNome().toUpperCase().contains(nome.toUpperCase()))
-                .collect(Collectors.toList());
-
+                .toList();
     }
 
     public Contato buscarContatoPorTelefone(String telefone) {
         if (telefone == null) {
             throw new IllegalArgumentException("Telefone não pode ser nulo.");
         }
-
         return contatos.stream()
                 .filter(c -> c.getTelefone().equals(telefone))
                 .findFirst()
                 .orElseThrow(() -> new ContatoNaoEncontradoException("Contato não encontrado. Telefone: " + telefone));
     }
 
-    public List<Contato> listarOrdenados(){
-
+    public List<Contato> listarOrdenados() {
         return contatos.stream()
                 .sorted(Comparator.comparing(Contato::getNome))
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    public List<Contato> listarContatos(){
+    public List<Contato> listarContatos() {
         return List.copyOf(contatos);
     }
 }
