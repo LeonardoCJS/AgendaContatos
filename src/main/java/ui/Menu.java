@@ -151,7 +151,11 @@ public class Menu {
                 System.out.println("Nenhum contato encontrado!");
                 return;
             }
-            contatos.forEach(System.out::println);
+            System.out.println("====== Lista de Contatos ======");
+            for (int i = 0; i < contatos.size(); i++){
+                System.out.println((i+1) + ". " + contatos.get(i));
+                System.out.println("----------------------------");
+            }
         }catch (ContatoNaoEncontradoException e){
             System.out.println("Erro: " + e.getMessage());
         }

@@ -25,6 +25,10 @@ public class Contato {
         this.categoria = categoria;
     }
 
+    public Contato() {
+        this.id = null;
+    }
+
     public Long getId() {
         return id;
     }
