@@ -49,6 +49,22 @@ public class AgendaService {
         contatoRepository.salvar(contatos);
     }
 
+    public void atualizarContato(Long id, Contato contatoNovo) {
+        if (contatoNovo == null || id == null) {
+            throw new IllegalArgumentException("Contato ou Id não podem ser nulos.");
+        }
+        Contato contato = contatos.stream()
+                .filter(c -> c.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new ContatoNaoEncontradoException("Contato não encontrado. Id: " + id));
+
+        contato.setNome(contatoNovo.getNome());
+        contato.setTelefone(contatoNovo.getTelefone());
+        contato.setEmail(contatoNovo.getEmail());
+        contato.setCategoria(contatoNovo.getCategoria());
+
+        contatoRepository.salvar(contatos);
+    }
 
     public List<Contato> buscarContatoPorNome (String nome) {
         if (nome == null) {
